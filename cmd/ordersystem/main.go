@@ -44,11 +44,24 @@ func main() {
 
 	createOrderUseCase := NewCreateOrderUseCase(db, eventDispatcher)
 
-	webserver := webserver.NewWebServer(configs.WebServerPort)
+	webServer := webserver.NewWebServer(configs.WebServerPort)
 	webOrderHandler := NewWebOrderHandler(db, eventDispatcher)
-	webserver.AddHandler("/order", webOrderHandler.Create)
+	err = webServer.AddHandler("/order", &webserver.WebServerHandler{
+		Handler: webOrderHandler.Create,
+		Method:  http.MethodPost,
+	})
+	if err != nil {
+		panic(err)
+	}
+	err = webServer.AddHandler("/order", &webserver.WebServerHandler{
+		Handler: webOrderHandler.List,
+		Method:  http.MethodGet,
+	})
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("Starting web server on port", configs.WebServerPort)
-	go webserver.Start()
+	go webServer.Start()
 
 	grpcServer := grpc.NewServer()
 	createOrderService := service.NewOrderService(*createOrderUseCase)
