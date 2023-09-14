@@ -7,3 +7,5 @@ import (
 type ListOrderUseCase struct {
 	OrderRepository entity.OrderRepositoryInterface
 }
+
+// @TODO: Create the usecase method
