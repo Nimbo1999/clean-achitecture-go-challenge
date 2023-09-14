@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/devfullcycle/20-CleanArch/internal/entity"
@@ -24,6 +25,26 @@ func (r *OrderRepository) Save(order *entity.Order) error {
 		return err
 	}
 	return nil
+}
+
+func (r *OrderRepository) List(ctx context.Context) ([]*entity.Order, error) {
+	stmt, err := r.Db.Prepare("SELECT id, price, tax, final_price from orders")
+	if err != nil {
+		return nil, err
+	}
+	rows, err := stmt.QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orders := []*entity.Order{}
+	for rows.Next() {
+		order := new(entity.Order)
+		if err := rows.Scan(&order.ID, &order.Price, &order.Tax, &order.FinalPrice); err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+	return orders, nil
 }
 
 func (r *OrderRepository) GetTotal() (int, error) {

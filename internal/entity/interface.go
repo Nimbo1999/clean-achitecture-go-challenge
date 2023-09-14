@@ -1,6 +1,8 @@
 package entity
 
+import "context"
+
 type OrderRepositoryInterface interface {
 	Save(order *Order) error
-	// GetTotal() (int, error)
+	List(ctx context.Context) ([]*Order, error)
 }
