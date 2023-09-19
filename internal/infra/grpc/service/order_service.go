@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/devfullcycle/20-CleanArch/internal/infra/grpc/pb"
-	"github.com/devfullcycle/20-CleanArch/internal/usecase"
+	"github.com/nimbo1999/20-CleanArch/internal/infra/grpc/pb"
+	"github.com/nimbo1999/20-CleanArch/internal/usecase"
 )
 
 // type OrderServiceClient interface {

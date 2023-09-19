@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/devfullcycle/20-CleanArch/internal/entity"
+	"github.com/nimbo1999/20-CleanArch/internal/entity"
 )
 
 type OrderRepository struct {

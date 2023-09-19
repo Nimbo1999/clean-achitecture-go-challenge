@@ -1,4 +1,4 @@
-module github.com/devfullcycle/20-CleanArch
+module github.com/nimbo1999/20-CleanArch
 
 go 1.19
 
