@@ -22,6 +22,8 @@ type WebServer struct {
 	WebServerPort string
 }
 
+const PATH_SEPARATOR = "__"
+
 func NewWebServer(serverPort string) *WebServer {
 	return &WebServer{
 		Router:        chi.NewRouter(),
@@ -30,14 +32,18 @@ func NewWebServer(serverPort string) *WebServer {
 	}
 }
 
+func (s *WebServer) getHandlerKey(path string, webServerHandler *WebServerHandler) string {
+	return path + PATH_SEPARATOR + webServerHandler.Method
+}
+
 func (s *WebServer) AddHandler(path string, webServerHandler *WebServerHandler) error {
-	webHandler, found := s.Handlers[path]
+	webHandler, found := s.Handlers[s.getHandlerKey(path, webServerHandler)]
 	if found {
 		if webServerHandler.Method == webHandler.Method {
 			return ErrHandlerAlreadyExists
 		}
 	}
-	s.Handlers[path] = webServerHandler
+	s.Handlers[s.getHandlerKey(path, webServerHandler)] = webServerHandler
 	return nil
 }
 
@@ -47,28 +53,32 @@ func (s *WebServer) AddHandler(path string, webServerHandler *WebServerHandler) 
 func (s *WebServer) Start() {
 	s.Router.Use(middleware.Logger)
 	for path, webServerHandler := range s.Handlers {
+		splitted := strings.Split(path, PATH_SEPARATOR)
+		if len(splitted) < 1 {
+			panic(errors.New("could not retrieve the handler path"))
+		}
 		requestMethod := strings.TrimSpace(strings.ToUpper(webServerHandler.Method))
 		switch requestMethod {
 		case http.MethodPost:
-			s.Router.Post(path, webServerHandler.Handler)
+			s.Router.Post(splitted[0], webServerHandler.Handler)
 		case http.MethodGet:
-			s.Router.Get(path, webServerHandler.Handler)
+			s.Router.Get(splitted[0], webServerHandler.Handler)
 		case http.MethodPatch:
-			s.Router.Patch(path, webServerHandler.Handler)
+			s.Router.Patch(splitted[0], webServerHandler.Handler)
 		case http.MethodPut:
-			s.Router.Put(path, webServerHandler.Handler)
+			s.Router.Put(splitted[0], webServerHandler.Handler)
 		case http.MethodDelete:
-			s.Router.Delete(path, webServerHandler.Handler)
+			s.Router.Delete(splitted[0], webServerHandler.Handler)
 		case http.MethodOptions:
-			s.Router.Options(path, webServerHandler.Handler)
+			s.Router.Options(splitted[0], webServerHandler.Handler)
 		case http.MethodHead:
-			s.Router.Head(path, webServerHandler.Handler)
+			s.Router.Head(splitted[0], webServerHandler.Handler)
 		case http.MethodTrace:
-			s.Router.Trace(path, webServerHandler.Handler)
+			s.Router.Trace(splitted[0], webServerHandler.Handler)
 		case http.MethodConnect:
-			s.Router.Connect(path, webServerHandler.Handler)
+			s.Router.Connect(splitted[0], webServerHandler.Handler)
 		default:
-			s.Router.HandleFunc(path, webServerHandler.Handler)
+			s.Router.HandleFunc(splitted[0], webServerHandler.Handler)
 		}
 	}
 	http.ListenAndServe(s.WebServerPort, s.Router)

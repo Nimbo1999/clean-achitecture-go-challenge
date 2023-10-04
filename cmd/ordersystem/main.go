@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/nimbo1999/20-CleanArch/configs"
 	"github.com/nimbo1999/20-CleanArch/internal/event/handler"
+	"github.com/nimbo1999/20-CleanArch/internal/infra/database"
 	"github.com/nimbo1999/20-CleanArch/internal/infra/graph"
 	"github.com/nimbo1999/20-CleanArch/internal/infra/grpc/pb"
 	"github.com/nimbo1999/20-CleanArch/internal/infra/grpc/service"
@@ -29,11 +31,19 @@ func main() {
 		panic(err)
 	}
 
-	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
+	dbSourceUrl := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?multiStatements=true", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName)
+	db, err := sql.Open(configs.DBDriver, dbSourceUrl)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer db.Close()
+
+	migration := database.NewMigration(db, "mysql")
+	err = migration.Up()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	rabbitMQChannel := getRabbitMQChannel()
 
