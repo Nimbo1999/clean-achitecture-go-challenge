@@ -53,19 +53,11 @@ func (h *WebOrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *WebOrderHandler) List(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second))
 	defer cancel()
-	orders, err := h.OrderRepository.List(ctx)
+	listOrders := usecase.NewListOrderUseCase(h.OrderRepository)
+	payload, err := listOrders.Execute(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-	payload := []usecase.OrderOutputDTO{}
-	for _, order := range orders {
-		payload = append(payload, usecase.OrderOutputDTO{
-			ID:         order.ID,
-			Price:      order.Price,
-			Tax:        order.Tax,
-			FinalPrice: order.FinalPrice,
-		})
 	}
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
